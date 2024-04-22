@@ -78,9 +78,9 @@ const SideBar = () => {
             <img src={Logo} alt={'Logo icon'} />
           </Box>
           <Stack sx={{ width: "max-content" }} direction="column" alignItems="center" spacing={3}>
-            {Nav_Buttons.map((el) => (
+            {Nav_Buttons.map((el,index) => (
               el.index === selected ?
-                <Box key={""} sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 1.5 }}>
+                <Box key={index} sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 1.5 }}>
                   <IconButton sx={{ width: "max-content", color: "#fff" }} key={el.index}>
                     {el.icon}
                   </IconButton>
@@ -88,7 +88,7 @@ const SideBar = () => {
                 :
                 <IconButton onClick={() => { setSelected(el.index); navigate(getPath(el.index)) }} 
                 sx={{ width: "max-content", color:theme.palette.mode === 'light' ? "#000" 
-                : theme.palette.text.primary }} key={el.index}>
+                : theme.palette.text.primary }} key={index}>
                   {el.icon}
                 </IconButton>
             ))}

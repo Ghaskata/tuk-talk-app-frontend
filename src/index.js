@@ -5,6 +5,7 @@ import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
+
 // contexts
 import SettingsProvider from "./contexts/SettingsContext";
 import { store } from "./redux/store";
@@ -13,7 +14,7 @@ import { Provider as ReduxProvider} from "react-redux";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
-  <React.StrictMode>
+  <React.Fragment>
     <HelmetProvider>
       <ReduxProvider store={store}>
       <SettingsProvider>
@@ -23,7 +24,7 @@ root.render(
       </SettingsProvider>
       </ReduxProvider>
     </HelmetProvider>
-  </React.StrictMode>
+  </React.Fragment>
 );
 
 // If you want to start measuring performance in your app, pass a function
