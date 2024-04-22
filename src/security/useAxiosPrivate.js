@@ -1,33 +1,76 @@
-import axios from "axios";
+import React, { useEffect } from "react";
+import { authStore } from "../contexts/authStore";
+import { AUTH_API_URL, axiosPrivate } from "./axios";
 
-const BASE_URL = process.env.REACT_APP_BE_BASE_URL;
+const useAxiosPrivate = () => {
+  const {
+    isAuthenticated,
+    isRefreshing,
+    userData,
+    sessionId,
+    accessToken,
+    refreshToken,
+    setIsRefreshing,
+    removeUserData,
+    setAccessToken,
+  } = authStore();
 
-export default axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "Application/json",
-  },
-  withCredentials: true,
-});
+  useEffect(() => {
+    const requestIntercept = axiosPrivate.interceptors.request.use(
+      (config) => {
+        if (isAuthenticated) {
+          config.headers["Authorization"] = `Bearer ${accessToken}`;
+          config.headers["session"] = sessionId;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
 
-const axiosPrivate = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "Application/json",
-  },
-  withCredentials: true,
-});
+    const responseIntercept = axiosPrivate.interceptors.response.use(
+      (response) => {
+        return response;
+      },
+      async (error) => {
+        const prevRequest = error?.config;
+        if (
+          error?.response?.status === 401 &&
+          !prevRequest._retry &&
+          !isRefreshing
+        ) {
+          prevRequest._retry = true;
+          try {
+            setIsRefreshing(true);
+            const response = await axiosPrivate.post(
+              AUTH_API_URL.refreshToken,
+              JSON.stringify(refreshToken)
+            );
+            const { accessToken: newAccessToken, refreshToken } =
+              response.data.tokenData;
+            setAccessToken(newAccessToken);
 
-function path(root, subLink) {
-  return `${root}${subLink}`;
-}
+            prevRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+            return axiosPrivate(prevRequest);
+          } catch (refreshError) {
+            console.error("Error refreshing token:", refreshError);
+            removeUserData();
+            //redirect to login page
+            return Promise.reject(refreshError);
+          } finally {
+            setIsRefreshing(false);
+          }
+        }
 
-const ROOT_PATH_USER = "/users";
-const AUTH_API_URL = {
-  login: path(ROOT_PATH_USER, "/login"),
-  register: path(ROOT_PATH_USER, "/register"),
-  refreshToken: path(ROOT_PATH_USER, "/refreshToken"),
-  resetPassword: path(ROOT_PATH_USER, "/resetPassword"),
+        return Promise.reject(error);
+      }
+    );
+    return () => {
+      axiosPrivate.interceptors.request.eject(requestIntercept);
+      axiosPrivate.interceptors.response.eject(responseIntercept);
+    };
+  }, [isRefreshing, isAuthenticated, accessToken, refreshToken]);
+
+  return axiosPrivate;
 };
 
-export { axiosPrivate };
+export default useAxiosPrivate;

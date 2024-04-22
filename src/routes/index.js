@@ -8,6 +8,7 @@ import MainLayout from "../layouts/main";
 // config
 import { DEFAULT_PATH } from "../config";
 import LoadingScreen from "../components/LoadingScreen";
+import { authStore } from "../contexts/authStore";
 //import Settings from "../pages/dashboard/Settings";
 
 const Loadable = (Component) => (props) => {
