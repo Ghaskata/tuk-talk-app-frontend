@@ -13,12 +13,66 @@ import {
 } from "@mui/material";
 import { RHFTextField } from "../../components/hook-form";
 import { Eye, EyeSlash } from "phosphor-react";
-import { Link as RouterLink } from "react-router-dom";
+import { Navigate, Link as RouterLink, useNavigate } from "react-router-dom";
 import { Form, FormikProvider, useFormik } from "formik";
-import INPUT from "../../components/hook-form/INPUT";
+import { Input } from "../../components/hook-form/Input";
+import useAxiosPrivate from "../../security/useAxiosPrivate";
+import { useMutation, useQuery } from "react-query";
+import { AUTH_API_URL } from "../../security/axios";
+import { useSnackbar } from "notistack";
+import { authStore } from "../../contexts/authStore";
+import { DEFAULT_PATH } from "../../config";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
+  const { setUserData, isAuthenticated } = authStore();
+  const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+
+  // -----------------login api----------------------
+  const { mutateAsync: loginAPi } = useMutation(
+    async (data) => {
+      return await axiosPrivate.post(AUTH_API_URL.login, JSON.stringify(data));
+    },
+    {
+      onSuccess: (res) => {
+        console.log("res >>>>> ", res);
+        enqueueSnackbar("You are succesfully logged in.", {
+          variant: "success",
+          anchorOrigin: { vertical: "top", horizontal: "right" },
+          autoHideDuration: 2000,
+        });
+        setUserData(res.data);
+        navigate(DEFAULT_PATH);
+      },
+      onError: (error) => {
+        console.log("error >>> ", error);
+        const errCode = error?.response?.data?.code;
+        const errorData = error?.response?.data?.errors;
+        const errorMessge = error?.response?.data?.message;
+
+        if (errorData) {
+          Object.keys(errorData).forEach((key) => {
+            setFieldError(key, errorData[key]);
+          });
+          console.log("errData>>>>", errorData);
+        } else if (errorMessge) {
+          enqueueSnackbar(errorMessge, {
+            variant: "error",
+            anchorOrigin: { vertical: "top", horizontal: "right" },
+            autoHideDuration: 2000,
+          });
+        } else {
+          enqueueSnackbar("somthing gets wrong", {
+            variant: "error",
+            anchorOrigin: { vertical: "top", horizontal: "right" },
+            autoHideDuration: 2000,
+          });
+        }
+      },
+    }
+  );
 
   //validation rules
   const loginSchema = Yup.object().shape({
@@ -36,8 +90,9 @@ const LoginForm = () => {
   const formik = useFormik({
     initialValues: defaultValues,
     validationSchema: loginSchema,
-    onSubmit: (values, { resetForm }) => {
+    onSubmit: async (values, { resetForm }) => {
       console.log("values >>>>>>>>> ", values);
+      await loginAPi(values);
     },
   });
 
@@ -50,43 +105,29 @@ const LoginForm = () => {
     values,
     resetForm,
   } = formik;
+
+  if (isAuthenticated) {
+    return <Navigate to={DEFAULT_PATH} replace />;
+  }
+
   return (
     <FormikProvider value={formik}>
       <Form onSubmit={handleSubmit}>
         <Stack spacing={3}>
-          {/* {!!errors.afterSubmit && (
-          <Alert severity="error">{errors.afterSubmit.message}</Alert>
-        )} */}
-
-          <INPUT
+          <Input
             name="email"
             label="Email address"
             {...getFieldProps("email")}
-            value={values.email}
-            onChange={han}
             helpertext={touched.email && errors.email}
-            error={!!(touched.email && errors.email)}
+            error={touched.email && errors.email}
           />
-          <INPUT
+          <Input
             {...getFieldProps("password")}
             error={touched.password && errors.password}
             helpertext={touched.password && errors.password}
             name="password"
             label="Password"
             type={showPassword ? "text" : "password"}
-            // InputProps={{
-            //   endAdornment: (
-            //     <InputAdornment>
-            //       <IconButton
-            //         onClick={() => {
-            //           setShowPassword(!showPassword);
-            //         }}
-            //       >
-            //         {showPassword ? <Eye /> : <EyeSlash />}
-            //       </IconButton>
-            //     </InputAdornment>
-            //   ),
-            // }}
           />
         </Stack>
         <Stack alignItems={"flex-end"} sx={{ my: 2 }}>

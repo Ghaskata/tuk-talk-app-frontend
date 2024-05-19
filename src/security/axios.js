@@ -7,7 +7,7 @@ export default axios.create({
   headers: {
     "Content-Type": "Application/json",
   },
-  withCredentials: true,
+  // withCredentials: true,  // means that  it indicates that you want to send cookies along with your request.
 });
 
 const axiosPrivate = axios.create({
@@ -15,7 +15,7 @@ const axiosPrivate = axios.create({
   headers: {
     "Content-Type": "Application/json",
   },
-  withCredentials: true,
+  // withCredentials: true,
 });
 
 function path(root, subLink) {
@@ -28,6 +28,11 @@ const AUTH_API_URL = {
   register: path(ROOT_PATH_USER, "/register"),
   refreshToken: path(ROOT_PATH_USER, "/refreshToken"),
   resetPassword: path(ROOT_PATH_USER, "/resetPassword"),
+  socialLogin: path(ROOT_PATH_USER, "/socialLogin"),
 };
 
-export { axiosPrivate, AUTH_API_URL };
+const MY_PROFILE_API_URL = {
+  profile: path(ROOT_PATH_USER, "/profile"),
+};
+
+export { axiosPrivate, AUTH_API_URL, MY_PROFILE_API_URL };

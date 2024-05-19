@@ -24,7 +24,10 @@ const useAxiosPrivate = () => {
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => {
+        console.error("Request error >>> ", error);
+        Promise.reject(error);
+      }
     );
 
     const responseIntercept = axiosPrivate.interceptors.response.use(
@@ -61,6 +64,7 @@ const useAxiosPrivate = () => {
           }
         }
 
+        console.log("respone intercept errror >>> ", error);
         return Promise.reject(error);
       }
     );
