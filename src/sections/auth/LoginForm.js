@@ -23,7 +23,7 @@ import { useSnackbar } from "notistack";
 import { authStore } from "../../contexts/authStore";
 import { DEFAULT_PATH } from "../../config";
 
-const LoginForm = () => {
+const LoginForm = ({ loading, setloading }) => {
   const [showPassword, setShowPassword] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
   const { setUserData, isAuthenticated } = authStore();
@@ -37,6 +37,7 @@ const LoginForm = () => {
     },
     {
       onSuccess: (res) => {
+        setloading(false);
         console.log("res >>>>> ", res);
         enqueueSnackbar("You are succesfully logged in.", {
           variant: "success",
@@ -47,6 +48,7 @@ const LoginForm = () => {
         navigate(DEFAULT_PATH);
       },
       onError: (error) => {
+        setloading(false);
         console.log("error >>> ", error);
         const errCode = error?.response?.data?.code;
         const errorData = error?.response?.data?.errors;
@@ -91,6 +93,7 @@ const LoginForm = () => {
     initialValues: defaultValues,
     validationSchema: loginSchema,
     onSubmit: async (values, { resetForm }) => {
+      setloading(true);
       console.log("values >>>>>>>>> ", values);
       await loginAPi(values);
     },
@@ -158,7 +161,7 @@ const LoginForm = () => {
             },
           }}
         >
-          Login
+          {loading === true ? "loading ... " : "Login"}
         </Button>
       </Form>
     </FormikProvider>

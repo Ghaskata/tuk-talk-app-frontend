@@ -46,11 +46,15 @@ const useAxiosPrivate = () => {
             setIsRefreshing(true);
             const response = await axiosPrivate.post(
               AUTH_API_URL.refreshToken,
-              JSON.stringify(refreshToken)
+              JSON.stringify({refreshToken})
             );
-            const { accessToken: newAccessToken, refreshToken } =
-              response.data.tokenData;
+            const {
+              accessToken: newAccessToken,
+              refreshToken: newRefreshToken,
+            } = response.data.tokenData;
             setAccessToken(newAccessToken);
+            console.log("new accestoken >>> ", newAccessToken);
+            console.log("new refreshToken >>> ", newRefreshToken);
 
             prevRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
             return axiosPrivate(prevRequest);

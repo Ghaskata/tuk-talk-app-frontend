@@ -11,7 +11,7 @@ import { authStore } from "../../contexts/authStore";
 import { useNavigate } from "react-router-dom";
 import { DEFAULT_PATH } from "../../config";
 
-const AuthSocial = () => {
+const AuthSocial = ({ loading, setloading }) => {
   const axiosPrivate = useAxiosPrivate();
   const { isAuthenticated, userData, setUserData } = authStore();
   const { enqueueSnackbar } = useSnackbar();
@@ -25,6 +25,7 @@ const AuthSocial = () => {
     },
     {
       onSuccess: (res) => {
+        setloading(false);
         enqueueSnackbar("You are succesfully logged in.", {
           variant: "success",
           anchorOrigin: { vertical: "top", horizontal: "right" },
@@ -34,6 +35,7 @@ const AuthSocial = () => {
         navigate(DEFAULT_PATH);
       },
       onError: (error) => {
+        setloading(false);
         enqueueSnackbar("error while socila login", {
           variant: "error",
           anchorOrigin: { vertical: "top", horizontal: "right" },
@@ -48,6 +50,7 @@ const AuthSocial = () => {
   googleProvider.getCustomParameters({ prompt: "select_account" });
   const handleGoogleLogin = async () => {
     try {
+      setloading(true);
       console.log("social login");
       const res = await signInWithPopup(authentication, googleProvider);
       // console.log("google res user>>> ", res.user);
@@ -63,7 +66,16 @@ const AuthSocial = () => {
       console.log("google res user.googleId>>> ", req);
       await socialLogin({ ...req });
     } catch (error) {
-      console.log("error while google sign up");
+      setloading(false);
+      enqueueSnackbar("error while google sign up", {
+        variant: "error",
+        anchorOrigin: {
+          vertical: "top",
+          horizontal: "right",
+        },
+        autoHideDuration: 1000,
+      });
+      console.log("error while google sign up >>>", error);
     }
   };
   return (

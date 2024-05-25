@@ -1,4 +1,4 @@
-import { Box, IconButton, Stack, Typography } from "@mui/material";
+import { Avatar, Box, IconButton, Stack, Typography } from "@mui/material";
 import { CaretLeft } from "phosphor-react";
 import React, { useMemo } from "react";
 import ProfileForm from "../../sections/settings/ProfileForm";
@@ -6,6 +6,8 @@ import Conversation from "../../components/Conversation";
 import useAxiosPrivate from "../../security/useAxiosPrivate";
 import { MY_PROFILE_API_URL } from "../../security/axios";
 import { useQuery } from "react-query";
+import Logo from "../../assets/Images/logo.ico";
+import { deepPurple } from "@mui/material/colors";
 
 const Profile = () => {
   const queryKey = useMemo(() => ["myProfile"], []);
@@ -21,6 +23,29 @@ const Profile = () => {
       refetchOnWindowFocus: false,
     }
   );
+
+
+  
+
+  if (isFetching) {
+    return (
+      <Stack
+        sx={{
+          width: "100%",
+          backgroundColor: "rgba(0,0,0,0.50)",
+        }}
+        direction="row"
+        alignItems={"center"}
+      >
+        <Stack sx={{ width: "100%" }} direction="column" alignItems={"center"}>
+          <img style={{ height: 120, width: 120 }} src={Logo} alt="Logo" />
+        </Stack>
+      </Stack>
+    );
+  }
+
+  console.log("data >>>> ", data);
+
   return (
     <>
       <Stack direction={"row"} sx={{ width: "100%" }}>
@@ -31,7 +56,7 @@ const Profile = () => {
               theme.palette.mode === "light"
                 ? "#F8FAFF"
                 : theme.palette.background,
-            width: 320,
+            width: "100%",
             boxShadow: "0px 0px 2px rgba(0,0,0,0.25)",
           }}
         >
@@ -45,7 +70,21 @@ const Profile = () => {
             </Stack>
 
             {/* Profile Form */}
-            <ProfileForm />
+            <Stack
+              sx={{
+                marginTop: "0px",
+                display: "flex",
+                justifyContent: "end",
+                alignItems: "end",
+              }}
+            >
+              <Avatar
+                alt="Remy Sharp"
+                src={Logo}
+                sx={{ width: 120, height: 120, bgcolor: deepPurple[400] }}
+              />
+            </Stack>
+            <ProfileForm userData={data.user} />
           </Stack>
         </Box>
       </Stack>
