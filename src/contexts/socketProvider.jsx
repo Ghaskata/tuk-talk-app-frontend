@@ -5,18 +5,13 @@ import { authStore } from "./authStore";
 
 export const SocketContext = createContext({
   chatClient: null,
+  chatList: [],
+  chatReaction: [],
   sendMessageEvent: () => {},
   replyMessageEvent: () => {},
   reactMessageEvent: () => {},
   editMessageEvent: () => {},
   deleteMessageEvent: () => {},
-  //   channelList: [],
-  chatList: [],
-  chatReaction: [],
-  //   channelInfo: {},
-  membersList: [],
-  channelId: null,
-  setChannelId: (id) => {},
 });
 
 export const SocketContextProvider = ({ children }) => {
@@ -25,8 +20,6 @@ export const SocketContextProvider = ({ children }) => {
   const { isAuthenticated, sessionId, userData } = authStore();
   const [chatClient, setChatClient] = useState(null);
   const [connected, setConnected] = useState(false);
-  const [channelList, setChannelList] = useState([]);
-  const [channelId, setChannelId] = useState(null);
   const [chatList, setChatList] = useState([]);
   const [chatReaction, setChatReaction] = useState([]);
   const [user, setUser] = useState({});

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import FormProvider from "../../components/hook-form/FormProvider";
@@ -7,8 +7,49 @@ import { Alert, Button, Stack } from "@mui/material";
 import { RHFTextField } from "../../components/hook-form";
 import { Form, FormikProvider, useFormik } from "formik";
 import { Input } from "../../components/hook-form/Input";
+import { useMutation, useQueryClient } from "react-query";
+import useAxiosPrivate from "../../security/useAxiosPrivate";
+import { MY_PROFILE_API_URL, UPLOAD_IMAGE } from "../../security/axios";
+import { authStore } from "../../contexts/authStore";
+import { useSnackbar } from "notistack";
+import useCustomSnackbar from "../../components/Snackbar";
 
-const ProfileForm = ({ userData }) => {
+const ProfileForm = ({ userData, img, setImg, setpreviewImg }) => {
+  const {} = authStore();
+  const queryClient = useQueryClient();
+
+  const { enqueueSnackbar } = useSnackbar();
+  const axiosPrivate = useAxiosPrivate();
+  const [loading, setLoading] = useState(false);
+
+  const showSnackbar = useCustomSnackbar();
+
+  //upadte profile api
+  const { mutateAsync: updateProfileApi } = useMutation(
+    async (data) => {
+      return await axiosPrivate.patch(
+        MY_PROFILE_API_URL.updateProfile,
+        JSON.stringify(data)
+      );
+    },
+    {
+      onSuccess: (res) => {
+        setLoading(false);
+        console.log("res>>>>", res);
+        setpreviewImg(null);
+        queryClient.invalidateQueries("myProfile");
+        showSnackbar(res?.data?.message, "success");
+      },
+      onError: (err) => {
+        setLoading(false);
+        console.log("err>>>>", err);
+        if (err?.response?.message) {
+          showSnackbar(err?.response?.message, "error");
+        }
+      },
+    }
+  );
+
   //validation rules
   const profileSchema = Yup.object().shape({
     userName: Yup.string()
@@ -16,19 +57,55 @@ const ProfileForm = ({ userData }) => {
       .min(3)
       .required("This userName is visible to your contacts"),
     about: Yup.string().trim().min(1).required("About is required"),
+    image: Yup.string(),
     // avatarUrl: Yup.string().required("Avatar is required").nullable(true),
   });
 
   const defaultValues = {
     userName: userData.userName,
-    about: userData.about ?? "Hey There I'am Using Tuk Chat App ..." ,
+    about: userData.about ?? "Hey There I'am Using Tuk Chat App ...",
+    image: userData.image,
   };
 
   const formik = useFormik({
     initialValues: defaultValues,
     validationSchema: profileSchema,
     onSubmit: async (values, { resetForm }) => {
-      console.log("values >>>>>>>>> ", values);
+      try {
+        setLoading(true);
+
+        if (img) {
+          const formData = new FormData();
+          formData.append("image", img);
+          if (userData.image && !userData.image?.startsWith("http")) {
+            formData.append("oldImage", userData);
+          }
+          const response = await axiosPrivate.post(
+            UPLOAD_IMAGE.replace(":type", "userProfile"),
+            formData,
+            {
+              headers: {
+                "Content-type": "multipart/form-data",
+              },
+            }
+          );
+
+          const uploadedImageUrl = await response?.data?.file_name[0];
+          // showSnackbar("Image uploaded successfully.", "success");
+          setImg(null);
+          values.image = uploadedImageUrl;
+        }
+
+        await updateProfileApi(values);
+      } catch (error) {
+        setImg(null);
+        console.log("errro >>>", error);
+        if (error?.message) {
+          showSnackbar(error?.message, "error");
+        } else {
+          showSnackbar("Somthing get's wrong. Please try again.", "error");
+        }
+      }
     },
   });
 
@@ -80,7 +157,7 @@ const ProfileForm = ({ userData }) => {
               type="submit"
               variant="outlined"
             >
-              Save
+              {loading ? "loading..." : "Save"}
             </Button>
           </Stack>
         </Stack>

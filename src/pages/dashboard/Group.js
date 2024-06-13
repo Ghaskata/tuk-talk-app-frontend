@@ -48,7 +48,7 @@ const Group = () => {
                     <SimpleBarStyle  timeout={500} clickOnTrack={false}>
                         <Stack spacing={2.5}>
                             {/*  */}
-                            <Typography variant='subtitle2' sx={{color:'#676667'}}>Pinned</Typography>
+                            <Typography variant='subtitle2' sx={{color:'#676667'}}>All People</Typography>
                             {/* Pinned */}
                             {ChatList.filter((el)=> el.pinned).map((el)=>{
                                 return <ChatElement  {...el}/>

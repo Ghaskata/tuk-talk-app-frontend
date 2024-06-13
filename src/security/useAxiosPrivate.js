@@ -53,8 +53,8 @@ const useAxiosPrivate = () => {
               refreshToken: newRefreshToken,
             } = response.data.tokenData;
             setAccessToken(newAccessToken);
-            console.log("new accestoken >>> ", newAccessToken);
-            console.log("new refreshToken >>> ", newRefreshToken);
+            // console.log("new accestoken >>> ", newAccessToken);
+            // console.log("new refreshToken >>> ", newRefreshToken);
 
             prevRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
             return axiosPrivate(prevRequest);

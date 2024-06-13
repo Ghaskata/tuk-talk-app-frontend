@@ -10,11 +10,14 @@ import { useSnackbar } from "notistack";
 import { authStore } from "../../contexts/authStore";
 import { useNavigate } from "react-router-dom";
 import { DEFAULT_PATH } from "../../config";
+import useCustomSnackbar from "../../components/Snackbar";
 
 const AuthSocial = ({ loading, setloading }) => {
   const axiosPrivate = useAxiosPrivate();
   const { isAuthenticated, userData, setUserData } = authStore();
   const { enqueueSnackbar } = useSnackbar();
+  const showSnackbar = useCustomSnackbar();
+
   const navigate = useNavigate();
   const { mutateAsync: socialLogin } = useMutation(
     async (data) => {
@@ -26,21 +29,13 @@ const AuthSocial = ({ loading, setloading }) => {
     {
       onSuccess: (res) => {
         setloading(false);
-        enqueueSnackbar("You are succesfully logged in.", {
-          variant: "success",
-          anchorOrigin: { vertical: "top", horizontal: "right" },
-          autoHideDuration: 2000,
-        });
+        showSnackbar("You are succesfully logged in.", "success");
         setUserData(res.data);
         navigate(DEFAULT_PATH);
       },
       onError: (error) => {
         setloading(false);
-        enqueueSnackbar("error while socila login", {
-          variant: "error",
-          anchorOrigin: { vertical: "top", horizontal: "right" },
-          autoHideDuration: 2000,
-        });
+        showSnackbar("error while socila login", "error");
       },
     }
   );
@@ -67,14 +62,14 @@ const AuthSocial = ({ loading, setloading }) => {
       await socialLogin({ ...req });
     } catch (error) {
       setloading(false);
-      enqueueSnackbar("error while google sign up", {
-        variant: "error",
-        anchorOrigin: {
-          vertical: "top",
-          horizontal: "right",
-        },
-        autoHideDuration: 1000,
-      });
+      if (error.code === "auth/popup-closed-by-user") {
+        showSnackbar(
+          "Authentication popup closed before completing. Please try again.",
+          "error"
+        );
+      } else {
+        showSnackbar(`Authentication error:${error}`, "error");
+      }
       console.log("error while google sign up >>>", error);
     }
   };
